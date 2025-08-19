@@ -78,5 +78,5 @@ CREATE INDEX IF NOT EXISTS idx_training_logs_simulation_id ON training_logs(simu
 
 EOF
 
-echo "Database initialized successfully!"
+echo "Database initialized successfully!!"
 echo "Database file: /data/robot_training.db"
