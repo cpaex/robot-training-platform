@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Base de datos SQLite (usando volumen para persistencia)
+  db:
+    image: alpine:latest
+    volumes:
+      - ./data:/data
+      - ./init_db.sh:/init_db.sh
+    command: sh -c "apk add --no-cache sqlite && sh /init_db.sh && tail -f /dev/null"
+    ports:
+      - "5432:5432"
+
+  # Backend FastAPI
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:///data/robot_training.db
+      - SECRET_KEY=your-secret-key-here-change-in-production
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # Runner de simulaciones dummy
+  simulation-runner:
+    build: ./simulation-runner
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:///data/robot_training.db
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+      - db
+    restart: unless-stopped
+
+  # Frontend simple (opcional)
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  data:
